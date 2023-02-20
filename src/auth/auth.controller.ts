@@ -1,13 +1,18 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { EmailService } from 'src/email/email.service';
 import { AuthService } from './auth.service';
 import { SendVerificationEmailDto } from './dto/send-verification-email-dto';
+import { SignInDto } from './dto/sign-in-dto';
 import { SignUpDto } from './dto/sign-up-dto';
 import { VerifyEmailDto } from './dto/verify-email-dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('signin')
+  signIn(@Body() signIn: SignInDto) {
+    return this.authService.signIn(signIn);
+  }
 
   @Post('signup')
   signUp(@Body() signUpDto: SignUpDto) {

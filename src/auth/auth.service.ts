@@ -1,13 +1,20 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 
-import { SignUpUserTypes, User } from 'src/users/entities/user.entity';
+import { SignUpUserRoles, User } from 'src/users/entities/user.entity';
 import { Candidate } from 'src/candidates/entities/candidate.entity';
 import { SignUpDto } from './dto/sign-up-dto';
 import { EmailService } from 'src/email/email.service';
+import { SignInDto } from './dto/sign-in-dto';
+import { MessageHelper } from 'src/helpers/message.helper';
+import { Company } from 'src/company/entities/company.entity';
 
 @Injectable()
 export class AuthService {
@@ -15,10 +22,37 @@ export class AuthService {
     @InjectModel(User.name) private userModel: mongoose.Model<User>,
     @InjectModel(Candidate.name)
     private candidateModel: mongoose.Model<Candidate>,
+    @InjectModel(Company.name) private companyModel: mongoose.Model<Company>,
     private jwtService: JwtService,
     private emailService: EmailService,
     @InjectConnection() private readonly connection: mongoose.Connection,
   ) {}
+
+  async signIn(signIn: SignInDto): Promise<{ token: string }> {
+    const { email, password } = signIn;
+
+    const user = await this.userModel.findOne({ email });
+
+    if (!user) {
+      throw new UnauthorizedException(MessageHelper.INVALID_CREDENTIALS);
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+      throw new UnauthorizedException(MessageHelper.INVALID_CREDENTIALS);
+    }
+
+    if (!user.verifyed) {
+      throw new UnauthorizedException(MessageHelper.UNVERIFIED_ACCOUNT);
+    }
+
+    const token = this.jwtService.sign({ id: user._id });
+
+    return {
+      token,
+    };
+  }
 
   async signUp(signUp: SignUpDto): Promise<{ email: string; name: string }> {
     const session = await this.connection.startSession();
@@ -38,13 +72,16 @@ export class AuthService {
             type,
             password: hashedPassword,
             verifyHash,
+            active: true,
           },
         ],
         { session },
       );
 
-      if (type === SignUpUserTypes.CANDIDATE) {
+      if (type === SignUpUserRoles.CANDIDATE) {
         await this.candidateModel.create([{ user: user[0]._id }], { session });
+      } else if (type === SignUpUserRoles.COMNPANY) {
+        await this.companyModel.create([{ user: user[0]._id }], { session });
       } else {
         throw new BadRequestException();
       }
@@ -59,7 +96,7 @@ export class AuthService {
       };
     } catch (error) {
       await session.abortTransaction();
-      throw error;
+      throw new BadRequestException(error);
     } finally {
       session.endSession();
     }
@@ -69,11 +106,11 @@ export class AuthService {
     const user = await this.userModel.findOne({ email });
 
     if (!user) {
-      return new BadRequestException('user not found');
+      return new BadRequestException(MessageHelper.NOT_FOUND_ACCOUNT);
     }
 
-    if (user.active) {
-      return new BadRequestException('already active account');
+    if (user.verifyed) {
+      return new BadRequestException(MessageHelper.ALREADY_VERIFYED_ACCOUNT);
     }
 
     try {
@@ -102,16 +139,16 @@ export class AuthService {
 
       const user = await this.userModel.findOne({ email });
 
-      if (user.active) {
-        throw new BadRequestException('Email already confirmed');
+      if (user.verifyed) {
+        throw new BadRequestException(MessageHelper.ALREADY_VERIFYED_ACCOUNT);
       }
 
-      await user.updateOne({ active: true, verifyHash: null });
+      await user.updateOne({ verifyed: true, verifyHash: null });
     } catch (error) {
       if (error?.name === 'TokenExpiredError') {
-        throw new BadRequestException('Email confirmation token expired');
+        throw new BadRequestException(MessageHelper.EXPIRED_TOKEN);
       }
-      throw new BadRequestException('Bad confirmation token');
+      throw new BadRequestException(MessageHelper.INVALID_TOKEN);
     }
   }
 

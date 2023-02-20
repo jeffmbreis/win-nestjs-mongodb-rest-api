@@ -2,23 +2,18 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { User } from 'src/users/entities/user.entity';
 
-export enum MaritalStatusOptions {
-  SINGLE = 'Solteiro(a)',
-  MARRIED = 'Casado(a)',
-  SEPARATE = 'Separado(a)',
-  DIVORCED = 'Divorciado(a)',
-  WIDOWER = 'Viuvo(a)',
+export enum CompanyFieldOptions {
+  HOSPITALITY = 'Hotelaria',
+  RESTAURANT = 'Restaurante',
+  PUB = 'Bar',
 }
 
 @Schema({
   timestamps: true,
 })
-export class Candidate {
+export class Company {
   @Prop()
   image: string;
-
-  @Prop()
-  birthday: string;
 
   @Prop()
   phone: string;
@@ -45,18 +40,12 @@ export class Candidate {
   city: string;
 
   @Prop()
-  salary_expectation: number;
-
-  @Prop()
-  children: number;
-
-  @Prop()
-  marital_status: MaritalStatusOptions;
+  field: CompanyFieldOptions;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: User.name })
   user: User;
 }
 
-export const CandidateSchema = SchemaFactory.createForClass(Candidate);
+export const CompanySchema = SchemaFactory.createForClass(Company);
 
-export type CandidateDocument = HydratedDocument<Candidate>;
+export type CompanyDocument = HydratedDocument<Company>;

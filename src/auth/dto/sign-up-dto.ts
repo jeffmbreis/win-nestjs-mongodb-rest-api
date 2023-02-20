@@ -3,9 +3,11 @@ import {
   IsEnum,
   IsNotEmpty,
   IsString,
-  MinLength,
+  Matches,
 } from 'class-validator';
-import { SignUpUserTypes } from 'src/users/entities/user.entity';
+import { MessageHelper } from 'src/helpers/message.helper';
+import { RegexHelper } from 'src/helpers/regex.helper';
+import { SignUpUserRoles } from 'src/users/entities/user.entity';
 
 export class SignUpDto {
   @IsNotEmpty()
@@ -18,10 +20,12 @@ export class SignUpDto {
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(6)
+  @Matches(RegexHelper.password, {
+    message: MessageHelper.INVALID_PASSWORD_FORMAT,
+  })
   readonly password: string;
 
   @IsNotEmpty()
-  @IsEnum(SignUpUserTypes)
-  readonly type: SignUpUserTypes;
+  @IsEnum(SignUpUserRoles)
+  readonly type: SignUpUserRoles;
 }

@@ -9,6 +9,7 @@ import { CandidatesModule } from './candidates/candidates.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
+import { CompanyModule } from './company/company.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { EmailModule } from './email/email.module';
     AuthModule,
     CandidatesModule,
     EmailModule,
+    CompanyModule,
   ],
   controllers: [AppController],
   providers: [AppService, EmailService],

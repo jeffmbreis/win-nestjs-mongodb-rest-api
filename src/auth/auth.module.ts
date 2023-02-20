@@ -11,6 +11,10 @@ import {
   CandidateSchema,
 } from 'src/candidates/entities/candidate.entity';
 import { EmailModule } from 'src/email/email.module';
+import { JwtStrategy } from './strategy/jwt.strategy';
+import { RolesGuard } from './guards/roles.guard';
+import { JwtGuard } from './guards/jwt.guard';
+import { Company, CompanySchema } from 'src/company/entities/company.entity';
 
 @Module({
   imports: [
@@ -29,10 +33,12 @@ import { EmailModule } from 'src/email/email.module';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Candidate.name, schema: CandidateSchema },
+      { name: Company.name, schema: CompanySchema },
     ]),
     EmailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy, JwtGuard, RolesGuard],
+  exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}

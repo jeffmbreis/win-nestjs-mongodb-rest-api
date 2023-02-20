@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
+import { User, UserSchema } from 'src/users/entities/user.entity';
 import { UpdateCandidateDto } from './dto/update-candidate.dto';
 import { Candidate } from './entities/candidate.entity';
 
@@ -12,11 +13,13 @@ export class CandidatesService {
   ) {}
 
   findAll() {
-    return `This action returns all candidates`;
+    return this.candidateModel.find().populate('user', 'email name');
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} candidate`;
+  findOne(id: string) {
+    return this.candidateModel
+      .findById(id)
+      .populate('user', '-password -verifyHash');
   }
 
   update(id: number, updateCandidateDto: UpdateCandidateDto) {
