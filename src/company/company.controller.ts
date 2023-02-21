@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
@@ -20,6 +21,13 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
+  @Roles(UserRoles.COMPANY)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Get('me')
+  me(@Request() req) {
+    return this.companyService.findOne(req.user._id);
+  }
+
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
   @Get()
@@ -31,7 +39,7 @@ export class CompanyController {
   @UseGuards(JwtGuard, RolesGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.companyService.findOne(+id);
+    return this.companyService.findOne(id);
   }
 
   @Roles(UserRoles.ADMIN)

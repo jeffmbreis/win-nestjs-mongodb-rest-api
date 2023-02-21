@@ -11,7 +11,7 @@ export enum SignUpUserRoles {
 export enum UserRoles {
   ADMIN = 'admin',
   CANDIDATE = 'candidate',
-  COMNPANY = 'company',
+  COMPANY = 'company',
 }
 
 @Schema({

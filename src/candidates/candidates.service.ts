@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
-import { User, UserSchema } from 'src/users/entities/user.entity';
+import mongoose from 'mongoose';
 import { UpdateCandidateDto } from './dto/update-candidate.dto';
 import { Candidate } from './entities/candidate.entity';
 
@@ -18,7 +17,7 @@ export class CandidatesService {
 
   findOne(id: string) {
     return this.candidateModel
-      .findById(id)
+      .findOne({ user: id })
       .populate('user', '-password -verifyHash');
   }
 

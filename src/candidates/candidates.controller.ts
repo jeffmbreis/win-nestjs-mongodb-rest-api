@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
@@ -17,6 +18,13 @@ import { UpdateCandidateDto } from './dto/update-candidate.dto';
 @Controller('candidates')
 export class CandidatesController {
   constructor(private readonly candidatesService: CandidatesService) {}
+
+  @Roles(UserRoles.CANDIDATE)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Get('me')
+  me(@Request() req) {
+    return this.candidatesService.findOne(req.user._id);
+  }
 
   @Roles(UserRoles.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
