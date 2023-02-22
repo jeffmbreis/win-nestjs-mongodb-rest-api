@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Exclude } from 'class-transformer';
 import { HydratedDocument } from 'mongoose';
-import * as uniqueValidator from 'mongoose-unique-validator';
 
 export enum SignUpUserRoles {
   CANDIDATE = 'candidate',
@@ -21,7 +20,9 @@ export class User {
   @Prop()
   name: string;
 
-  @Prop({ type: String, unique: 'email in use' })
+  @Prop({
+    unique: true,
+  })
   email: string;
 
   @Prop()
@@ -42,7 +43,5 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-
-UserSchema.plugin(uniqueValidator);
 
 export type UserDocument = HydratedDocument<User>;
